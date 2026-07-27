@@ -42,6 +42,6 @@ next-env.d.ts
 /outputs/
 /work/
 
-# private interview preparation
-/docs/TECHNICAL_INTERVIEW_GUIDE.md
-/docs/OpsBriefing_Technical_Interview_Guide.docx
+# local-only documents
+/docs/*_GUIDE.md
+/docs/*.docx
