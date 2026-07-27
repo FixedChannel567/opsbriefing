@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <item rdf:about="https://example.com/dw-hormuz">
+    <title>Shipping watches the Strait of Hormuz</title>
+    <link>https://example.com/dw-hormuz</link>
+    <description>Carriers are monitoring traffic near the Strait of Hormuz &amp;mdash; with new notices expected.</description>
+    <dc:date>2026-07-26T17:15:00Z</dc:date>
+  </item>
+</rdf:RDF>
