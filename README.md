@@ -9,7 +9,7 @@
 
 ![OpsBriefing social preview](docs/images/social-card.png)
 
-OpsBriefing is a full-stack geopolitical news dashboard that transforms direct reporting from six international newsrooms into five source-backed event clusters and a cited 10-minute executive brief.
+OpsBriefing is a full-stack geopolitical news dashboard that transforms public reporting from six international newsrooms into five source-backed event clusters and a cited 10-minute analytical brief.
 
 It is built as a production-oriented SWE portfolio project: concurrent ingestion, adversarial feed sanitization, deterministic clustering, real geographic coordinates, durable daily snapshots, graceful upstream failure handling, responsive visualization, fixture-based tests, CI, and Cloudflare deployment.
 
@@ -19,7 +19,8 @@ It is built as a production-oriented SWE portfolio project: concurrent ingestion
 
 - **Five-event queue:** orders current clusters by independent source breadth.
 - **Interactive world map:** resolves place names found in reporting to latitude and longitude, with zoom-aware markers and a clickable legend.
-- **Evidence view:** displays publisher-supplied context with numbered article citations.
+- **Evidence view:** reads public article bodies, ranks substantive passages, and preserves numbered citations.
+- **Cross-source audit:** distinguishes related coverage, distinct reporting angles, and RSS-only fallbacks.
 - **Daily delta:** compares the latest briefing against the most recent saved D1 snapshot.
 - **10-minute report:** combines all five events into a distraction-free cited reading view.
 - **Methodology page:** exposes source selection, ranking, geocoding, change detection, and limitations.
@@ -39,10 +40,10 @@ flowchart LR
 
   subgraph Edge API
     B[Concurrent feed adapters]
-    C[XML normalization and sanitization]
-    D[Topic clustering and outlet deduplication]
-    E[Gazetteer location resolution]
-    F[Daily change engine]
+    C[XML normalization and topic clustering]
+    D[Public article extraction]
+    E[Passage ranking and source comparison]
+    F[Geocoding and daily change engine]
   end
 
   subgraph Storage
@@ -64,9 +65,9 @@ flowchart LR
 
 ## Engineering Decisions
 
-### Evidence Before Synthesis
+### Evidence Before Analysis
 
-OpsBriefing intentionally uses extractive publisher descriptions rather than generated factual prose. Every factual paragraph is attached to an article URL. Analytical watchpoints are authored separately and visibly labeled.
+OpsBriefing reads publicly accessible article bodies after RSS discovery, selects substantive passages, and keeps every reported passage attached to its article URL. Paywalled or restricted pages fall back to visibly labeled feed descriptions. Strategic context and uncertainties are authored separately and visibly labeled.
 
 ### Fault-Tolerant Ingestion
 
@@ -145,6 +146,7 @@ npm run db:generate
 ## Limitations and Roadmap
 
 - RSS descriptions vary in depth; readers should open citations for full context.
+- Publisher access controls can limit some sources to feed excerpts; OpsBriefing does not bypass them.
 - The deterministic topic and location dictionaries are explainable but not exhaustive.
 - Licensed wire services require separate commercial credentials.
 - Future work could add semantic entity resolution, geospatial polygons, PDF/email export, and adapter-health monitoring.
