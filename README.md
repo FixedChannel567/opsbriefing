@@ -20,7 +20,8 @@ It is built as a production-oriented SWE portfolio project: concurrent ingestion
 - **Five-event queue:** orders current clusters by independent source breadth.
 - **Interactive world map:** resolves place names found in reporting to latitude and longitude, with zoom-aware markers and a clickable legend.
 - **Evidence view:** reads public article bodies, ranks substantive passages, and preserves numbered citations.
-- **Cross-source audit:** distinguishes related coverage, distinct reporting angles, and RSS-only fallbacks.
+- **Same-story clustering:** requires a shared actor or theater plus a concrete event concept before sources can be grouped.
+- **Cross-source audit:** exposes why sources were admitted, related coverage, distinct reporting angles, and RSS-only fallbacks.
 - **Daily delta:** compares the latest briefing against the most recent saved D1 snapshot.
 - **10-minute report:** combines all five events into a distraction-free cited reading view.
 - **Methodology page:** exposes source selection, ranking, geocoding, change detection, and limitations.
@@ -40,9 +41,9 @@ flowchart LR
 
   subgraph Edge API
     B[Concurrent feed adapters]
-    C[XML normalization and topic clustering]
-    D[Public article extraction]
-    E[Passage ranking and source comparison]
+    C[Geopolitical relevance gate]
+    D[Same-story clustering and triage]
+    E[Public article extraction and passage ranking]
     F[Geocoding and daily change engine]
   end
 
@@ -79,7 +80,7 @@ Publisher feeds vary between RSS, RDF, CDATA, literal HTML, and multiply encoded
 
 ### Explainable Selection
 
-Version-controlled topic dictionaries match articles into geopolitical theatres. Only one article per publisher is retained in a cluster. The five clusters with the broadest configured source representation are selected. Source breadth is an ordering signal, not a confidence score.
+Version-controlled topic dictionaries identify candidate geopolitical reporting, but do not define events. A same-story comparator requires a shared actor or theater plus a concrete event concept such as an attack, negotiation, election, sanction, drill, or shipping incident. Single-publisher clusters are rejected. Cross-sourced clusters are triaged using source breadth, recency, theater priority, and observable consequence language; the score remains internal and is not presented as certainty.
 
 ### Evidence-Based Geocoding
 
@@ -147,6 +148,7 @@ npm run db:generate
 
 - RSS descriptions vary in depth; readers should open citations for full context.
 - Publisher access controls can limit some sources to feed excerpts; OpsBriefing does not bypass them.
+- Strict same-story matching favors precision over recall and can omit a valid source whose framing uses substantially different language.
 - The deterministic topic and location dictionaries are explainable but not exhaustive.
 - Licensed wire services require separate commercial credentials.
 - Future work could add semantic entity resolution, geospatial polygons, PDF/email export, and adapter-health monitoring.
