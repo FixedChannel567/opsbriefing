@@ -40,6 +40,7 @@ test("live route retrieves direct newsroom feeds and keeps source context", asyn
   assert.match(route, /attachDailyChanges/);
   assert.match(route, /enrichArticle/);
   assert.match(route, /buildEventAnalysis/);
+  assert.match(route, /selectTopStories/);
   assert.match(route, /Promise\.allSettled/);
 });
 
