@@ -27,6 +27,7 @@ type Development = {
 
 type BriefingEvent = {
   id: string;
+  topicId: string;
   rank: number;
   label: string;
   region: string;
@@ -48,6 +49,8 @@ type BriefingEvent = {
       convergentClaims: number;
       summary: string;
     };
+    storyFocus: string[];
+    crossSourceRead: string;
     analysis: {
       whyItMatters: string;
       connection: string;
@@ -188,7 +191,7 @@ export default function Home() {
                     const markerScale = 1 + (zoom - 1) * 0.38;
                     const markerX = 50 + (event.coordinates.x - 50) * zoom;
                     const markerY = 50 + (event.coordinates.y - 50) * zoom;
-                    return <button aria-label={`Open ${event.label}`} className={`map-marker marker-${event.id} ${selected?.id === event.id ? "active" : ""}`} key={event.id} onClick={() => setSelectedId(event.id)} style={{ left: `${markerX}%`, top: `${markerY}%`, transform: `translate(-50%, -50%) scale(${markerScale})` }} type="button"><span>{event.rank}</span><small>{event.label}</small></button>;
+                    return <button aria-label={`Open ${event.label}`} className={`map-marker marker-${event.topicId} ${selected?.id === event.id ? "active" : ""}`} key={event.id} onClick={() => setSelectedId(event.id)} style={{ left: `${markerX}%`, top: `${markerY}%`, transform: `translate(-50%, -50%) scale(${markerScale})` }} type="button"><span>{event.rank}</span><small>{event.label}</small></button>;
                   })}
                 </div>
               </div>
@@ -228,7 +231,7 @@ export default function Home() {
                 <div><span>Unresolved</span><h3>What remains uncertain</h3><p>{selected.intelligence.analysis.uncertainty}</p></div>
               </section>
 
-              <section className="source-audit"><div><span>Full article bodies</span><strong>{selected.intelligence.sourceAudit.fullTextSources}</strong></div><div><span>Feed fallbacks</span><strong>{selected.intelligence.sourceAudit.feedOnlySources}</strong></div><p>{selected.intelligence.sourceAudit.summary}</p></section>
+              <section className="source-audit"><div><span>Full article bodies</span><strong>{selected.intelligence.sourceAudit.fullTextSources}</strong></div><div><span>Feed fallbacks</span><strong>{selected.intelligence.sourceAudit.feedOnlySources}</strong></div><p><b>Story boundary:</b> {selected.intelligence.crossSourceRead}<br />{selected.intelligence.sourceAudit.summary}</p></section>
 
               <div className="brief-columns">
                 <section><h3>Actors in focus</h3><div className="tag-list">{selected.actors.map((actor) => <span key={actor}>{actor}</span>)}</div></section>
@@ -262,7 +265,7 @@ export default function Home() {
             {event.intelligence.developments.slice(0, 6).map((development, index) => <div className="report-evidence" key={`${development.url}-${index}`}><span>{development.kind} · {development.outlet}</span><p>{trimSentence(development.text, 720)} <a href={development.url} target="_blank" rel="noreferrer">[{citationNumber(development.url)}]</a></p>{development.relatedOutlets.length > 0 && <small>Related reporting: {development.relatedOutlets.join(", ")}</small>}</div>)}
             <div className="change-card report-change"><span>Since yesterday</span><p>{event.change}</p></div>
             <div className="report-analysis"><div><strong>Why it matters</strong><p>{event.intelligence.analysis.whyItMatters}</p></div><div><strong>Connection to watch</strong><p>{event.intelligence.analysis.connection}</p></div><div><strong>What remains uncertain</strong><p>{event.intelligence.analysis.uncertainty}</p></div></div>
-            <p className="audit-note"><strong>Source audit:</strong> {event.intelligence.sourceAudit.fullTextSources} public article bodies analyzed; {event.intelligence.sourceAudit.feedOnlySources} feed fallbacks. {event.intelligence.sourceAudit.summary}</p>
+            <p className="audit-note"><strong>Story boundary:</strong> {event.intelligence.crossSourceRead}<br /><strong>Source audit:</strong> {event.intelligence.sourceAudit.fullTextSources} public article bodies analyzed; {event.intelligence.sourceAudit.feedOnlySources} feed fallbacks. {event.intelligence.sourceAudit.summary}</p>
             <div className="watch-box"><strong>Watch next</strong><span>{event.watch.join(" · ")}</span></div>
           </section>)}
           <section className="references"><h2>Sources</h2>{citations.map((article, index) => <a href={article.url} target="_blank" rel="noreferrer" key={article.url}><b>[{index + 1}] {article.outlet}</b><span>{article.title}</span><small>{sourceTime(article.seenAt)}</small></a>)}</section>
