@@ -11,6 +11,18 @@ type Article = {
   seenAt: string;
   sourceCountry: string;
   evidence: string;
+  access: "Full public article" | "Newsroom feed excerpt";
+  wordCount: number;
+  passages: { text: string; kind: string }[];
+};
+
+type Development = {
+  text: string;
+  kind: string;
+  outlet: string;
+  url: string;
+  access: string;
+  relatedOutlets: string[];
 };
 
 type BriefingEvent = {
@@ -27,6 +39,21 @@ type BriefingEvent = {
   actors: string[];
   watch: string[];
   articles: Article[];
+  intelligence: {
+    bottomLine: Development;
+    developments: Development[];
+    sourceAudit: {
+      fullTextSources: number;
+      feedOnlySources: number;
+      convergentClaims: number;
+      summary: string;
+    };
+    analysis: {
+      whyItMatters: string;
+      connection: string;
+      uncertainty: string;
+    };
+  };
 };
 
 type LivePayload = {
@@ -116,11 +143,11 @@ export default function Home() {
       <section className="intro" id="top">
         <p className="eyebrow">Daily decision brief</p>
         <h1>Five events shaping the world right now.</h1>
-        <p>Current reporting, source context, key actors, and a cited executive read. Updated from established global newsrooms throughout the day.</p>
+        <p>Full-article evidence, cross-source context, key actors, and a cited analytical read. Updated from established global newsrooms throughout the day.</p>
         <div className="brief-meta">
           <span>{payload.updatedAt ? `Updated ${new Date(payload.updatedAt).toLocaleString()}` : "Connecting to live sources"}</span>
           <span>{citations.length} cited reports</span>
-          <span>Live newsroom feeds</span>
+          <span>Public articles + newsroom feeds</span>
           {payload.snapshotStatus && <span>{payload.snapshotStatus}</span>}
         </div>
       </section>
@@ -174,32 +201,47 @@ export default function Home() {
             {selected && <article className="brief-card">
               <div className="brief-kicker"><span>{selected.label}</span><span>{selected.sourceCount} sources</span></div>
               <h2>{selected.title}</h2>
-              <p className="brief-deck">The verified picture below is assembled directly from current article context. Each passage links to the report it came from.</p>
+              <p className="brief-deck">A source-backed reading of the development, built from public article bodies where available and clearly marked feed excerpts everywhere else.</p>
 
               <section className="change-card"><span>What changed since yesterday</span><p>{selected.change}</p></section>
 
+              <section className="bottom-line">
+                <h3>Bottom line</h3>
+                <p>{trimSentence(selected.intelligence.bottomLine.text, 620)} <a href={selected.intelligence.bottomLine.url} target="_blank" rel="noreferrer">[{citationNumber(selected.intelligence.bottomLine.url)}]</a></p>
+                <span>Reported by {selected.intelligence.bottomLine.outlet}</span>
+              </section>
+
               <section className="reported-facts">
-                <h3>What is being reported</h3>
-                {selected.articles.slice(0, 4).map((article) => (
-                  <div className="evidence-block" key={article.url}>
-                    <p>{trimSentence(article.evidence)} <a href={article.url} target="_blank" rel="noreferrer">[{citationNumber(article.url)}]</a></p>
-                    <span>{article.outlet} · {sourceTime(article.seenAt)}</span>
+                <h3>Key developments</h3>
+                {selected.intelligence.developments.slice(0, 5).map((development, index) => (
+                  <div className="evidence-block" key={`${development.url}-${index}`}>
+                    <div className="evidence-label"><span>{development.kind}</span><em>{development.access}</em></div>
+                    <p>{trimSentence(development.text)} <a href={development.url} target="_blank" rel="noreferrer">[{citationNumber(development.url)}]</a></p>
+                    <span>{development.outlet}{development.relatedOutlets.length ? ` · Related coverage: ${development.relatedOutlets.join(", ")}` : " · Distinct reporting angle"}</span>
                   </div>
                 ))}
               </section>
+
+              <section className="analysis-panel">
+                <div><span>Analysis</span><h3>Why it matters</h3><p>{selected.intelligence.analysis.whyItMatters}</p></div>
+                <div><span>Connection</span><h3>Read across systems</h3><p>{selected.intelligence.analysis.connection}</p></div>
+                <div><span>Unresolved</span><h3>What remains uncertain</h3><p>{selected.intelligence.analysis.uncertainty}</p></div>
+              </section>
+
+              <section className="source-audit"><div><span>Full article bodies</span><strong>{selected.intelligence.sourceAudit.fullTextSources}</strong></div><div><span>Feed fallbacks</span><strong>{selected.intelligence.sourceAudit.feedOnlySources}</strong></div><p>{selected.intelligence.sourceAudit.summary}</p></section>
 
               <div className="brief-columns">
                 <section><h3>Actors in focus</h3><div className="tag-list">{selected.actors.map((actor) => <span key={actor}>{actor}</span>)}</div></section>
                 <section><h3>What to watch next</h3><ul>{selected.watch.map((signal) => <li key={signal}>{signal}</li>)}</ul></section>
               </div>
 
-              <section className="source-list"><h3>Source trail</h3>{selected.articles.map((article) => <a href={article.url} key={article.url} target="_blank" rel="noreferrer"><span><b>[{citationNumber(article.url)}] {article.outlet}</b><small>{article.title}</small></span><em>Open article ↗</em></a>)}</section>
+              <section className="source-list"><h3>Source trail</h3>{selected.articles.map((article) => <a href={article.url} key={article.url} target="_blank" rel="noreferrer"><span><b>[{citationNumber(article.url)}] {article.outlet}</b><small>{article.title}</small><small>{article.access}{article.access === "Full public article" ? ` · ${article.wordCount.toLocaleString()} words analyzed` : ""}</small></span><em>Open article ↗</em></a>)}</section>
             </article>}
 
           </section>
 
           <section className="report-callout">
-            <div><p className="eyebrow">The complete picture</p><h2>One briefing. Five events. Every claim sourced.</h2><p>Open a focused executive report that connects the day&apos;s major developments without hiding the underlying reporting.</p></div>
+            <div><p className="eyebrow">The complete picture</p><h2>One briefing. Five events. Evidence and analysis kept distinct.</h2><p>Open a focused executive report that connects the day&apos;s major developments without hiding the underlying reporting or unresolved questions.</p></div>
             <button className="primary-button large" onClick={() => setReportOpen(true)} type="button">Generate today&apos;s 10-minute report</button>
           </section>
         </>
@@ -210,13 +252,17 @@ export default function Home() {
         <article className="long-report">
           <p className="eyebrow">Executive intelligence brief · {payload.updatedAt ? new Date(payload.updatedAt).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" }) : "Current briefing"}</p>
           <h1 id="report-title">The world in ten minutes</h1>
-          <p className="report-lede">Five developments receiving the broadest current coverage across established international news sources. Reported facts are cited inline; the watchpoints are analytical prompts, not claims of fact.</p>
+          <p className="report-lede">Five developments receiving broad current coverage across established international news sources. Reported passages are cited inline; analysis, connections, and unresolved questions are labeled separately.</p>
           <div className="report-summary">{events.map((event) => <a href={`#report-${event.id}`} key={event.id}><span>0{event.rank}</span>{event.label}</a>)}</div>
           {events.map((event) => <section className="report-section" id={`report-${event.id}`} key={event.id}>
             <p className="report-region">{event.region} · {event.sourceCount} reporting organizations</p>
             <h2>{event.title}</h2>
-            {event.articles.slice(0, 5).map((article) => <p key={article.url}>{trimSentence(article.evidence, 700)} <a href={article.url} target="_blank" rel="noreferrer">[{citationNumber(article.url)}]</a></p>)}
+            <div className="report-bottom-line"><strong>Bottom line</strong><p>{trimSentence(event.intelligence.bottomLine.text, 720)} <a href={event.intelligence.bottomLine.url} target="_blank" rel="noreferrer">[{citationNumber(event.intelligence.bottomLine.url)}]</a></p></div>
+            <h3 className="report-subhead">What the reporting establishes</h3>
+            {event.intelligence.developments.slice(0, 6).map((development, index) => <div className="report-evidence" key={`${development.url}-${index}`}><span>{development.kind} · {development.outlet}</span><p>{trimSentence(development.text, 720)} <a href={development.url} target="_blank" rel="noreferrer">[{citationNumber(development.url)}]</a></p>{development.relatedOutlets.length > 0 && <small>Related reporting: {development.relatedOutlets.join(", ")}</small>}</div>)}
             <div className="change-card report-change"><span>Since yesterday</span><p>{event.change}</p></div>
+            <div className="report-analysis"><div><strong>Why it matters</strong><p>{event.intelligence.analysis.whyItMatters}</p></div><div><strong>Connection to watch</strong><p>{event.intelligence.analysis.connection}</p></div><div><strong>What remains uncertain</strong><p>{event.intelligence.analysis.uncertainty}</p></div></div>
+            <p className="audit-note"><strong>Source audit:</strong> {event.intelligence.sourceAudit.fullTextSources} public article bodies analyzed; {event.intelligence.sourceAudit.feedOnlySources} feed fallbacks. {event.intelligence.sourceAudit.summary}</p>
             <div className="watch-box"><strong>Watch next</strong><span>{event.watch.join(" · ")}</span></div>
           </section>)}
           <section className="references"><h2>Sources</h2>{citations.map((article, index) => <a href={article.url} target="_blank" rel="noreferrer" key={article.url}><b>[{index + 1}] {article.outlet}</b><span>{article.title}</span><small>{sourceTime(article.seenAt)}</small></a>)}</section>
