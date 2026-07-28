@@ -25,6 +25,9 @@ test("comprehensive report has inline citations and a reference list", async () 
   assert.match(page, /citationNumber/);
   assert.match(page, /className="references"/);
   assert.match(page, /target="_blank"/);
+  assert.match(page, /What the reporting establishes/);
+  assert.match(page, /What remains uncertain/);
+  assert.match(page, /Source audit/);
 });
 
 test("live route retrieves direct newsroom feeds and keeps source context", async () => {
@@ -35,6 +38,8 @@ test("live route retrieves direct newsroom feeds and keeps source context", asyn
   assert.match(route, /parseFeedXml/);
   assert.match(route, /resolveEventLocation/);
   assert.match(route, /attachDailyChanges/);
+  assert.match(route, /enrichArticle/);
+  assert.match(route, /buildEventAnalysis/);
   assert.match(route, /Promise\.allSettled/);
 });
 
